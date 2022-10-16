@@ -10,19 +10,16 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-public class ShopifyProductBuilder {
+public class ShopifyPatchBuilder {
     public static List<ShopifyProductDTO> build(String fileName) {
         var prodList = new ArrayList<ShopifyProductDTO>();
         try {
             Reader in = new FileReader(fileName);
-            var enumLength = ShopifyHeaderEnum.values().length;
+            var enumLength = ShopifyProductDTO.PATCH_FIELDS_ENUMS.size();
             var vct = new String[enumLength];
             int cnt = 0;
-            for (var item : ShopifyHeaderEnum.values()) {
+            for (var item : ShopifyProductDTO.PATCH_FIELDS_ENUMS) {
                 vct[cnt++] =item.label;
             }
             Iterable<CSVRecord> records = CSVFormat.EXCEL.withHeader(vct).withFirstRecordAsHeader().parse(in);
@@ -37,34 +34,39 @@ public class ShopifyProductBuilder {
     }
 
 
-    public static boolean createImportFile(List<ShopifyProductDTO> productDTOList, String fileName) {
+    public static boolean createTemplate(List<ShopifyProductDTO> productDTOList, String fileName) {
         boolean retState = false;
 
-        var numFields = ShopifyHeaderEnum.values().length;
+        var numFields = ShopifyProductDTO.PATCH_FIELDS_ENUMS.size();
+//        var vct = new String[numFields];
+//        int cnt = 0;
+//        for (var item : ShopifyProductDTO.PATCH_FIELDS_ENUMS) {
+//            vct[cnt++] =item.label;
+//        }
         try (CSVPrinter printer = new CSVPrinter(new FileWriter(fileName), CSVFormat.EXCEL)) {
             var headList = new String[numFields];
             int cnt = 0;
-            for (var item : ShopifyHeaderEnum.values()) {
+            for (var item : ShopifyProductDTO.PATCH_FIELDS_ENUMS) {
                 headList[cnt++] =item.label;
             }
             printer.printRecord(headList);
             for (var recod : productDTOList) {
                 cnt = 0;
                 var fieldList = new Object[numFields];
-                for (var item : ShopifyHeaderEnum.values()) {
+                for (var item : ShopifyProductDTO.PATCH_FIELDS_ENUMS) {
                     fieldList[cnt++] = recod.get(item.name());
                 }
                 printer.printRecord(fieldList);
             }
+
+
+
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        retState = true;
-        return retState;
-    }
 
-    public static Map<String, ShopifyProductDTO> createProductMap(List<ShopifyProductDTO> list) {
-        var map = list.stream().collect(Collectors.toMap(ShopifyProductDTO::getId, Function.identity()));
-        return map;
+        retState = true;
+
+        return retState;
     }
 }

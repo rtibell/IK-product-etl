@@ -45,8 +45,11 @@ public class ShopifyProductDTO {
     public ShopifyProductDTO(CSVRecord record) {
         attributeMap = new HashMap<String, Object>();
         for (var enm : ShopifyHeaderEnum.values()) {
-            System.out.println(String.format("Name=%s label=%s value=%s", enm.name(), enm.label,  record.get(enm.label)));
-            if (enm.label != null && record.get(enm.label) != null) attributeMap.put(enm.name(), record.get(enm.label));
+
+            if (enm.label != null && record.isMapped(enm.label) && record.get(enm.label) != null) {
+                System.out.println(String.format("Name=%s label=%s value=%s", enm.name(), enm.label,  record.get(enm.label)));
+                attributeMap.put(enm.name(), record.get(enm.label));
+            }
         }
     }
 
@@ -62,5 +65,20 @@ public class ShopifyProductDTO {
     public Object get(String id) {
         var item = attributeMap.get(id);
         return item;
+    }
+
+    public void updatRecord(ShopifyProductDTO x) {
+        for(var item : ShopifyHeaderEnum.values()) {
+            if (x.attributeMap.containsKey(item.name()) &&
+                    x.attributeMap.get(item.name()) != null &&
+                    !x.attributeMap.get(item.name()).toString().equals("")) {
+                System.out.println(String.format("Patch %s %s --> %s",
+                        item.name(),
+                        this.attributeMap.get(item.name()),
+                        x.attributeMap.get(item.name())));
+                this.attributeMap.put(item.name(), x.attributeMap.get(item.name()));
+            }
+        }
+
     }
 }
